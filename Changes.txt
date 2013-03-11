@@ -1,0 +1,377 @@
+*A new taxonomy created under current theme..
+In our case, twentyeleven is the theme we are working with..
+
+Taxonomy created: edition
+HOW???
+
+Add these lines in your functions.php file(wp-content/themes/twentyeleven/functions.php)
+
+/** Add custom taxonomy Edition*/
+
+add_action('init','create_edition_taxonomy',0);
+
+function create_edition_taxonomy(){
+
+	$edition_labels = array(
+		     'name' => _x( 'Editions', 'taxonomy general name' ),
+		    'singular_name' => _x('Edition', 'taxonomy singular name'),
+    		'menu_name' => 'Edition',
+		    'all_items' => __( 'All Editions' ),
+		    'edit_item' => __( 'Edit Edition' ),
+			'view_item' => __( 'View Edition' ),
+			'update_item' => __( 'Update Edition' ),
+			'add_new_item' => __( 'Add New Edition' ),
+			'new_item_name' => __( 'New Edition Name' ),
+			'parent_item' => __( 'Parent Edition' ),
+			'parent_item_colon' => __( 'Parent Edition:' ),
+			'search_items' => __( 'Search Editions' ),
+			'popular_items' => null,
+			'separate_items_with_commas' => null,
+			'add_or_remove_items' => __( 'Add or remove edition' ),
+			'choose_from_most_used' => __( 'Choose from the most used editions' )	
+	);
+
+/*Registering edition taxonomy*/
+
+	register_taxonomy( 'edition', 'post', array( 
+		'hierarchical' => false, 
+		'labels' => $edition_labels, 
+		'query_var' => true, 
+		'rewrite' => array('slug' => 'edition') ) );
+}
+
+*
+
+*Added a plugin  taxonomy picker.*
+
+*A login button and register button can be added on the wordpress page by calling simple wordpress functions.. What we have done is called those functions while loading the header i.e in the file header.php
+
+lines to be added are:
+
+<!--//////////////////Section for login button/////////////////////////////////////////-->
+
+
+<div id="login" align="right">
+<?php wp_loginout();?>
+<?php wp_register();?>
+</div>
+
+
+<!--///////////////////////////////////////////////////////////-->
+
+we can change these links to small buttons also
+
+*
+
+*
+/*********************Adding custom post type for bulletin board*********************************/
+	function my_custom_post_bulletin() {
+	$labels = array(
+		'name'               => _x( 'bulletins', 'post type general name' ),
+		'singular_name'      => _x( 'bulletin', 'post type singular name' ),
+		'add_new'            => _x( 'Add New', 'bulletin' ),
+		'add_new_item'       => __( 'Add New Bulletin' ),
+		'edit_item'          => __( 'Edit Bulletin' ),
+		'new_item'           => __( 'New Bulletin' ),
+		'all_items'          => __( 'All Bulletins' ),
+		'view_item'          => __( 'View Bulletin' ),
+		'search_items'       => __( 'Search Bulletins' ),
+		'not_found'          => __( 'No bulletins found' ),
+		'not_found_in_trash' => __( 'No bulletins found in the Trash' ), 
+		'parent_item_colon'  => '',
+		'menu_name'          => 'Bulletins'
+	);
+	$args = array(
+		'labels'        => $labels,
+		'description'   => 'Holds our bulletins',
+		'public'        => true,
+		'menu_position' => 5,
+		'supports'      => array( 'title', 'editor', 'thumbnail', 'excerpt', 'comments', 'author' ),
+		'has_archive'   => true,
+	);
+	register_post_type( 'bulletins', $args );	
+}
+add_action( 'init', 'my_custom_post_bulletin' );
+
+/*****************Custom post type creation code ends here*****************/
+
+*To display bulletin posts in sidebar as widget "custom post display" plugin has been used*
+
+Replace your content.php file.....
+
+Content.php
+
+?********For displays tags as Authors***************?
+<?php
+/**
+ * The default template for displaying content
+ *
+ * @package WordPress
+ * @subpackage Twenty_Eleven
+ * @since Twenty Eleven 1.0
+ */
+?>
+
+	<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
+		<header class="entry-header">
+			<?php if ( is_sticky() ) : ?>
+				<hgroup>
+					<h2 class="entry-title"><a href="<?php the_permalink(); ?>" title="<?php echo esc_attr( sprintf( __( 'Permalink to %s', 'twentyeleven' ), the_title_attribute( 'echo=0' ) ) ); ?>" rel="bookmark"><?php the_title(); ?></a></h2>
+					<h3 class="entry-format"><?php _e( 'Featured', 'twentyeleven' ); ?></h3>
+				</hgroup>
+			<?php else : ?>
+			<h1 class="entry-title"><a href="<?php the_permalink(); ?>" title="<?php echo esc_attr( sprintf( __( 'Permalink to %s', 'twentyeleven' ), the_title_attribute( 'echo=0' ) ) ); ?>" rel="bookmark"><?php the_title(); ?></a></h1>
+			<?php endif; ?>
+
+			<?php if ( 'post' == get_post_type() ) : ?>
+			<div class="entry-meta">
+				<?php twentyeleven_posted_on(); ?>
+			</div><!-- .entry-meta -->
+			<?php endif; ?>
+
+			<?php if ( comments_open() && ! post_password_required() ) : ?>
+			<div class="comments-link">
+				<?php comments_popup_link( '<span class="leave-reply">' . __( 'Reply', 'twentyeleven' ) . '</span>', _x( '1', 'comments number', 'twentyeleven' ), _x( '%', 'comments number', 'twentyeleven' ) ); ?>
+			</div>
+			<?php endif; ?>
+		</header><!-- .entry-header -->
+
+		<?php if ( is_search() ) : // Only display Excerpts for Search ?>
+		<div class="entry-summary">
+			<?php the_excerpt(); ?>
+		</div><!-- .entry-summary -->
+		<?php else : ?>
+		<div class="entry-content">
+			<?php the_content( __( 'Continue reading <span class="meta-nav">&rarr;</span>', 'twentyeleven' ) ); ?>
+			<?php wp_link_pages( array( 'before' => '<div class="page-link"><span>' . __( 'Pages:', 'twentyeleven' ) . '</span>', 'after' => '</div>' ) ); ?>
+		</div><!-- .entry-content -->
+		<?php endif; ?>
+
+		<footer class="entry-meta">
+             <?php
+			  $edition_list = get_the_term_list( $post->ID, 'Edition', '', ',' ,'' ); 
+			  printf( __( '<span class="%1$s">Edition:</span> %2$s', 'twentyeleven' ), 'entry-utility-prep entry-utility-prep-cat-links', $edition_list );
+			 ?>
+             <span class="sep"> | </span>
+			<?php $show_sep = false; ?>
+			<?php if ( is_object_in_taxonomy( get_post_type(), 'category' ) ) : // Hide category text when not supported ?>
+			<?php
+				/* translators: used between list items, there is a space after the comma */
+				$categories_list = get_the_category_list( __( ', ', 'twentyeleven' ) );
+				if ( $categories_list ):
+			?>
+			<span class="cat-links">
+				<?php printf( __( '<span class="%1$s">Section:</span> %2$s', 'twentyeleven' ), 'entry-utility-prep entry-utility-prep-cat-links', $categories_list );
+				$show_sep = true; ?>
+			</span>
+			<?php endif; // End if categories ?>
+			<?php endif; // End if is_object_in_taxonomy( get_post_type(), 'category' ) ?>
+			<?php if ( is_object_in_taxonomy( get_post_type(), 'post_tag' ) ) : // Hide tag text when not supported ?>
+			<?php
+				/* translators: used between list items, there is a space after the comma */
+				$tags_list = get_the_tag_list( '', __( ', ', 'twentyeleven' ) );
+				if ( $tags_list ):
+				if ( $show_sep ) : ?>
+			<span class="sep"> | </span>
+				<?php endif; // End if $show_sep ?>
+			<span class="tag-links">
+				<?php printf( __( '<span class="%1$s">Author:</span> %2$s', 'twentyeleven' ), 'entry-utility-prep entry-utility-prep-tag-links', $tags_list );
+				$show_sep = true; ?>
+			</span>
+			<?php endif; // End if $tags_list ?>
+			<?php endif; // End if is_object_in_taxonomy( get_post_type(), 'post_tag' ) ?>
+
+			<?php if ( comments_open() ) : ?>
+			<?php if ( $show_sep ) : ?>
+			<span class="sep"> | </span>
+			<?php endif; // End if $show_sep ?>
+			<span class="comments-link"><?php comments_popup_link( '<span class="leave-reply">' . __( 'Leave a reply', 'twentyeleven' ) . '</span>', __( '<b>1</b> Reply', 'twentyeleven' ), __( '<b>%</b> Replies', 'twentyeleven' ) ); ?></span>
+			<?php endif; // End if comments_open() ?>
+
+			<?php edit_post_link( __( 'Edit', 'twentyeleven' ), '<span class="edit-link">', '</span>' ); ?>
+		</footer><!-- .entry-meta -->
+	</article><!-- #post-<?php the_ID(); ?> -->
+
+
+For displaying taxonomy as widget
+
+/*..........Taxonomy terms...******************/
+
+
+function ucc_widgets_init() {
+  if ( !is_blog_installed() )
+    return;
+ 
+  register_widget( 'WP_Widget_Taxonomy_Terms' );
+ 
+  do_action( 'widgets_init' );
+}
+ 
+add_action( 'init' , 'ucc_widgets_init' , 1 );
+ 
+class WP_Widget_Taxonomy_Terms extends WP_Widget {
+ 
+  function WP_Widget_Taxonomy_Terms() {
+    $widget_ops = array( 'classname' => 'widget_taxonomy_terms' , 'description' => __( "A list, dropdown, or cloud of taxonomy terms" ) );
+    $this->WP_Widget( 'taxonomy_terms' , __( 'Taxonomy Terms' ) , $widget_ops );
+  }
+ 
+  function widget( $args , $instance ) {
+    extract( $args );
+ 
+    $current_taxonomy = $this->_get_current_taxonomy( $instance );
+    $tax = get_taxonomy( $current_taxonomy );
+    if ( !empty( $instance['title'] ) ) {
+      $title = $instance['title'];
+    } else {
+      $title = $tax->labels->name;
+    }
+ 
+    global $t;
+    $t = $instance['taxonomy'];
+    $f = $instance['format'];
+    $c = $instance['count'] ? '1' : '0';
+    $h = $instance['hierarchical'] ? '1' : '0';
+ 
+    $w = $args['widget_id'];
+    $w = 'ttw' . str_replace( 'taxonomy_terms-' , '' , $w );
+ 
+    echo $before_widget;
+    if ( $title )
+      echo $before_title . $title . $after_title;
+ 
+    $tax_args = array( 'orderby' => 'name' , 'show_count' => $c , 'hierarchical' => $h , 'taxonomy' => $t );
+ 
+    if ( $f == 'dropdown' ) {
+      $tax_args['show_option_none'] = __( 'Select ' . $tax->labels->singular_name );
+      $tax_args['name'] = __( $w );
+      $tax_args['echo'] = false;
+      $my_dropdown_categories = wp_dropdown_categories( apply_filters( 'widget_categories_dropdown_args' , $tax_args ) );
+ 
+      $my_get_term_link = create_function( '$matches' , 'global $t; return "value=\"" . get_term_link( (int) $matches[1] , $t ) . "\"";' );
+      echo preg_replace_callback( '#value="(\\d+)"#' , $my_get_term_link , $my_dropdown_categories );
+ 
+?>
+<script type='text/javascript'>
+/* <![CDATA[ */
+  var dropdown<?php echo $w; ?> = document.getElementById("<?php echo $w; ?>");
+  function on<?php echo $w; ?>change() {
+    if ( dropdown<?php echo $w; ?>.options[dropdown<?php echo $w; ?>.selectedIndex].value != '-1' ) {
+      location.href = dropdown<?php echo $w; ?>.options[dropdown<?php echo $w; ?>.selectedIndex].value;
+    }
+  }
+  dropdown<?php echo $w; ?>.onchange = on<?php echo $w; ?>change;
+/* ]]> */
+</script>
+<?php
+ 
+    } elseif ( $f == 'list' ) {
+ 
+?>
+    <ul>
+<?php
+ 
+    $tax_args['title_li'] = '';
+    wp_list_categories( apply_filters( 'widget_categories_args' , $tax_args ) );
+ 
+?>
+    </ul>
+<?php
+ 
+    } else {
+ 
+?>
+    <div>
+<?php
+ 
+      wp_tag_cloud( apply_filters( 'widget_tag_cloud_args' , array( 'taxonomy' => $t ) ) );
+ 
+?>
+    </div>
+<?php
+ 
+    }
+    echo $after_widget;
+  }
+ 
+  function update( $new_instance, $old_instance ) {
+    $instance = $old_instance;
+    $instance['title'] = strip_tags( $new_instance['title'] );
+    $instance['taxonomy'] = stripslashes( $new_instance['taxonomy'] );
+    $instance['format'] = stripslashes( $new_instance['format'] );
+    $instance['count'] = !empty( $new_instance['count'] ) ? 1 : 0;
+    $instance['hierarchical'] = !empty( $new_instance['hierarchical'] ) ? 1 : 0;
+ 
+    return $instance;
+  }
+ 
+  function form( $instance ) {
+    //Defaults
+    $instance = wp_parse_args( (array) $instance , array( 'title' => '' ) );
+    $current_taxonomy = $this->_get_current_taxonomy( $instance );
+    $current_format = esc_attr( $instance['format'] );
+    $title = esc_attr( $instance['title'] );
+    $count = isset( $instance['count'] ) ? (bool) $instance['count'] : false;
+    $hierarchical = isset( $instance['hierarchical'] ) ? (bool) $instance['hierarchical'] : false;
+ 
+?>
+    <p><label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?></label>
+    <input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo $title; ?>" /></p>
+ 
+    <p><label for="<?php echo $this->get_field_id( 'taxonomy' ); ?>"><?php _e( 'Taxonomy:' ); ?></label>
+    <select class="widefat" id="<?php echo $this->get_field_id( 'taxonomy' ); ?>" name="<?php echo $this->get_field_name( 'taxonomy' ); ?>">
+<?php
+ 
+    $args = array(
+      'public' => true ,
+      '_builtin' => false
+    );
+    $output = 'names';
+    $operator = 'and';
+ 
+    $taxonomies = get_taxonomies( $args , $output , $operator );
+    $taxonomies = array_merge( $taxonomies, array( 'category' , 'post_tag' ) );
+    foreach ( $taxonomies as $taxonomy ) {
+      $tax = get_taxonomy( $taxonomy );
+      if ( empty( $tax->labels->name ) )
+        continue;
+?>
+    <option value="<?php echo esc_attr( $taxonomy ); ?>" <?php selected( $taxonomy , $current_taxonomy ); ?>><?php echo $tax->labels->name; ?></option>
+<?php
+ 
+    }
+ 
+?>
+    </select></p>
+ 
+    <p><label for="<?php echo $this->get_field_id( 'format' ); ?>"><?php _e( 'Format:' ) ?></label>
+    <select class="widefat" id="<?php echo $this->get_field_id( 'format' ); ?>" name="<?php echo $this->get_field_name( 'format' ); ?>">
+<?php
+ 
+    $formats = array( 'list' , 'dropdown' , 'cloud' );
+    foreach( $formats as $format ) {
+ 
+?>
+    <option value="<?php echo esc_attr( $format ); ?>" <?php selected( $format , $current_format ); ?>><?php echo ucfirst( $format ); ?></option>
+<?php
+ 
+    }
+ 
+?>
+    </select></p>
+    <input type="checkbox" class="checkbox" id="<?php echo $this->get_field_id( 'count' ); ?>" name="<?php echo $this->get_field_name( 'count' ); ?>"<?php checked( $count ); ?> />
+    <label for="<?php echo $this->get_field_id( 'count' ); ?>"><?php _e( 'Show post counts' ); ?></label><br />
+ 
+    <input type="checkbox" class="checkbox" id="<?php echo $this->get_field_id( 'hierarchical' ); ?>" name="<?php echo $this->get_field_name( 'hierarchical' ); ?>"<?php checked( $hierarchical ); ?> />
+    <label for="<?php echo $this->get_field_id( 'hierarchical' ); ?>"><?php _e( 'Show hierarchy' ); ?></label></p>
+<?php
+ 
+  }
+ 
+  function _get_current_taxonomy( $instance ) {
+    if ( !empty( $instance['taxonomy'] ) && taxonomy_exists( $instance['taxonomy'] ) )
+      return $instance['taxonomy'];
+    else
+      return 'category';
+  }
+}
