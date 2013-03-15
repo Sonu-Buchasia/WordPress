@@ -707,3 +707,47 @@ update_user_meta( $user_id, 'dob', $_POST['dob'] );
 
 }
 
+
+
+
+/*********************************/
+function my_custom_post_bulletin() {
+	$labels = array(
+		'name'               => _x( 'bulletins', 'post type general name' ),
+		'singular_name'      => _x( 'bulletin', 'post type singular name' ),
+		'add_new'            => _x( 'Add New', 'bulletin' ),
+		'add_new_item'       => __( 'Add New Bulletin' ),
+		'edit_item'          => __( 'Edit Bulletin' ),
+		'new_item'           => __( 'New Bulletin' ),
+		'all_items'          => __( 'All Bulletins' ),
+		'view_item'          => __( 'View Bulletin' ),
+		'search_items'       => __( 'Search Bulletins' ),
+		'not_found'          => __( 'No bulletins found' ),
+		'not_found_in_trash' => __( 'No bulletins found in the Trash' ), 
+		'parent_item_colon'  => '',
+		'menu_name'          => 'Bulletins'
+	);
+	$args = array(
+		'labels'        => $labels,
+		'description'   => 'Holds our bulletins',
+		'public'        => true,
+		'menu_position' => 5,
+		'supports'      => array( 'title', 'editor', 'thumbnail', 'excerpt', 'comments', 'author' ),
+		'has_archive'   => true,
+	);
+	register_post_type( 'bulletins', $args );	
+}
+add_action( 'init', 'my_custom_post_bulletin' );
+
+/*************************************EXCERPTS*/
+
+   function new_excerpt_more($more) {
+   global $post;
+   return '… <a href="'. get_permalink($post->ID) . '">' . 'Continue Reading to Read more &raquo;' . '</a>';
+   }
+   add_filter('excerpt_more', 'new_excerpt_more');
+   
+   function new_excerpt_length($length) {
+	return 100;
+}
+add_filter('excerpt_length', 'new_excerpt_length', 11);
